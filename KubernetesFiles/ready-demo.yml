@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ready-demo
-        image: sviera91/ready-demo:v0.3
+        image: 
         ports:
         - containerPort: 80
           name: 
@@ -28,7 +28,7 @@ kind: Service
 metadata:
   name: ready-demo
 spec:
-  loadBalancerIP: 104.211.17.146
+  loadBalancerIP: 
   type: LoadBalancer
   ports:
   - port: 80

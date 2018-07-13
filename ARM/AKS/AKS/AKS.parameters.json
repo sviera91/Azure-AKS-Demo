@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "value": "kcluster-01"
+        },
+        "location": {
+            "value": "eastus2"
+        },
+        "dnsPrefix": {
+            "value": "kcluster-01"
+        },
+        "agentCount": {
+            "value": 3
+        },
+        "agentVMSize": {
+            "value": "Standard_B2s"
+        },
+        "servicePrincipalClientId": {
+            "value": null
+        },
+        "servicePrincipalClientSecret": {
+            "value": null
+        },
+        "kubernetesVersion": {
+            "value": "1.10.5"
+        },
+        "workspaceName": {
+            "value": "SViera91-Workspace"
+        },
+        "omsWorkspaceId": {
+            "value": "/subscriptions/f223ca1e-f4d8-4fe8-8738-383d0f8f49c5/resourcegroups/rg-monitoring/providers/microsoft.operationalinsights/workspaces/sviera91-workspace"
+        },
+        "workspaceRegion": {
+            "value": "eastus"
+        },
+        "enableHttpApplicationRouting": {
+            "value": true
+        },
+        "networkPlugin": {
+            "value": "kubenet"
+        },
+        "enableRBAC": {
+            "value": true
+        }
+    }
+}
