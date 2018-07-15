@@ -1,0 +1,55 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appServicePlan": {
+      "value": {
+        "Name": "asp-ci318-test-use1-01",
+        "Sku": "F1",
+        "Capacity": 1
+      }
+    },
+    "sqlServer": {
+      "value": {
+        "Name": "asql-ci318-test-use1-01",
+        "Databases": [
+          {
+            "Name": "readyWebCore",
+            "Tier": "Standard",
+            "SKU": "S0"
+          }
+        ]
+      }
+    },
+    "webAppName": {
+      "value": "readyci318-test"
+    },
+    "KeyVault": {
+      "value": {
+        "name": "kvci318testuse101",
+        "location": "eastus",
+        "sku": "standard",
+        "accessPolicies": [
+          {
+            "objectId": "c7d066b8-db63-4b8c-a735-b971593c4c04",
+            "permissions": {
+              "storage": [ "get", "list", "delete", "set", "update", "regeneratekey", "setsas", "listsas", "getsas", "deletesas" ]
+            }
+          }
+        ],
+        "EnabledForDeployment": true,
+        "EnabledForTemplateDeployment": true,
+        "EnabledForDiskEncryption": false
+      }
+    },
+    "storageaccount": {
+      "value": {
+        "name": "saci318testuse101",
+        "location": "eastus",
+        "sku": "Standard_LRS",
+        "kind": "StorageV2",
+        "httpsOnly": true
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "pipName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Public IP Address"
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "location of Public IP Address"
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "basic",
+      "metadata": {
+        "description": "SKU of Public IP Address"
+      }
+    }
+  },
+  "variables": {
+  },
+  "resources": [
+    {
+      "name": "[parameters('pipName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2017-10-01",
+      "location": "[parameters('location')]",
+      "tags": {},
+      "sku": {
+        "name": "[parameters('sku')]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4",
+        "dnsSettings": {
+        "domainNameLabel": "[parameters('pipName')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "pipValue": {
+      "value": "[reference(parameters('pipName')).ipAddress]",
+      "type": "string"
+    }
+  }
+}

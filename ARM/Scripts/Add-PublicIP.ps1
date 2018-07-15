@@ -12,7 +12,7 @@ param
 #Variables
 $pipName = "$aksName-pip"
 
-$RG = (Get-AzureRmResourceGroup | where {$_.ResourceGroupName -like "*$aksResourceGroup-$envName-$envUse_$aksName*"}).ResourceGroupName 
+$RG = "MC_$($aksResourceGroup)-$($envName)-$($envUse)_$($aksName)_$($region)"
 
 #Looking for public IP address
 $PIP = Get-AzureRmPublicIpAddress -Name $pipName -ResourceGroupName $RG -ErrorAction SilentlyContinue
@@ -20,14 +20,14 @@ $PIP = Get-AzureRmPublicIpAddress -Name $pipName -ResourceGroupName $RG -ErrorAc
 #Retrieving IP address value
 If ($PIP -eq $null){
 
-    Write-Host "There is no available public IP. A new public IP address will be created."
+    Write-output "There is no available public IP. A new public IP address will be created."
 	New-AzureRmPublicIpAddress -Name $pipName -ResourceGroupName $RG -AllocationMethod Static -DomainNameLabel $pipName -Location $region -Sku Basic 
 	$pipValue = (Get-AzureRmPublicIpAddress -Name $pipName -ResourceGroupName $RG).IpAddress
 
 
 }else{
 
-    Write-Host "We have encountered a public IP address. Retrieving address."
+    Write-output "We have encountered a public IP address. Retrieving address."
 	$pipValue = (Get-AzureRmPublicIpAddress -Name $pipName -ResourceGroupName $RG).IpAddress
 
 }

@@ -1,0 +1,203 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appServicePlan": {
+      "type": "Object",
+      "metadata": {
+        "description": "Custom Object defining App Service Plan"
+      }
+    },
+    "sqlServer": {
+      "type": "Object",
+      "metadata": {
+        "description": "Custom Object defining SQL Server and Databases"
+      }
+    },
+    "sqlAdministratorLogin": {
+      "type": "string",
+      "metadata": {
+        "description": "The admin user of the SQL Server"
+      }
+    },
+    "sqlAdministratorLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password of the admin user of the SQL Server"
+      }
+    },
+    "webAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the WebApp to Publish"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location to build resources"
+      }
+    },
+    "KeyVault": {
+      "type": "object",
+      "metadata": {
+        "description": "Custom Object defining Key Vault"
+      }
+    },
+    "StorageAccount": {
+      "type": "object",
+      "metadata": {
+        "description": "Custom Object defining Storage Account"
+      }
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Sql/servers",
+      "name": "[parameters('sqlServer').Name]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+        "administratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-05-01-preview",
+          "type": "firewallrules",
+          "name": "AllowAllAzureIps",
+          "dependsOn": [
+            "[parameters('sqlServer').Name]"
+          ],
+          "properties": {
+            "endIpAddress": "0.0.0.0",
+            "startIpAddress": "0.0.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2017-10-01-preview",
+      "type": "Microsoft.Sql/servers/databases",
+      "name": "[concat(parameters('sqlServer').Name,'/',parameters('sqlServer').Databases[copyIndex()].Name)]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[parameters('sqlServer').Name]"
+      ],
+      "copy": {
+        "name": "DatabaseCopy",
+        "count": "[length(parameters('sqlServer').Databases)]"
+      },
+      "sku": {
+        "name": "[parameters('sqlServer').Databases[copyIndex()].Sku]",
+        "tier": "[parameters('sqlServer').Databases[copyIndex()].Tier]"
+      },
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS"
+      }
+    },
+    {
+      "apiVersion": "2016-09-01",
+      "type": "Microsoft.Web/serverfarms",
+      "name": "[parameters('appServicePlan').Name]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('appServicePlan').Sku]",
+        "capacity": "[parameters('appServicePlan').Capacity]"
+      },
+      "properties": {
+        "name": "[parameters('appServicePlan').Name]"
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[parameters('webAppName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[parameters('appServicePlan').Name]",
+        "[parameters('sqlServer').Name]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlan').Name)]",
+        "siteConfig": {
+          "connectionStrings": [
+            {
+              "name": "DefaultConnection",
+              "connectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', parameters('sqlServer').Name)).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('sqlServer').Databases[0].Name, ';User Id=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorLoginPassword'), ';')]",
+              "type": "SQLAzure"
+            }
+          ]
+        }
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      }
+    },
+    {
+      "apiVersion": "2015-05-01",
+      "name": "[concat('appi-', parameters('webAppName'),'-prod-use1')]",
+      "type": "Microsoft.Insights/components",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[parameters('webAppName')]"
+      ],
+      "tags": {
+        "[concat('hidden-link:', resourceId('Microsoft.Web/sites', parameters('webAppName')))]": "Resource"
+      },
+      "properties": {
+        "ApplicationId": "[parameters('webAppName')]"
+      }
+    },
+    {
+      "apiVersion": "2016-10-01",
+      "type": "Microsoft.KeyVault/vaults",
+      "name": "[parameters('KeyVault').name]",
+      "location": "[parameters('KeyVault').location]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "[parameters('KeyVault').sku]"
+        },
+        "tenantId": "[subscription().tenantId]",
+        "copy": [
+          {
+            "name": "accessPolicies",
+            "count": "[length(parameters('KeyVault').accessPolicies)]",
+            "input": {
+              "tenantId": "[subscription().tenantId]",
+              "objectId": "[parameters('KeyVault').accessPolicies[copyIndex('accessPolicies')].objectID]",
+              "permissions": "[parameters('KeyVault').accessPolicies[copyIndex('accessPolicies')].permissions]"
+            }
+          }
+        ],
+        "enabledForDeployment": "[parameters('KeyVault').EnabledForDeployment]",
+        "enabledForTemplateDeployment": "[parameters('KeyVault').EnabledForTemplateDeployment]",
+        "enabledForDiskEncryption": "[parameters('KeyVault').EnabledForDiskEncryption]"
+      },
+      "resources": [
+      ]
+    },
+    {
+      "apiVersion": "2017-10-01",
+      "name": "[parameters('StorageAccount').name]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[parameters('StorageAccount').location]",
+      "sku": {
+        "name": "[parameters('StorageAccount').sku]"
+      },
+      "kind": "[parameters('StorageAccount').kind]",
+      "properties": {
+        "supportsHttpsTrafficOnly": "[parameters('StorageAccount').httpsOnly]"
+      }
+    }
+  ],
+  "outputs": {
+  }
+}
