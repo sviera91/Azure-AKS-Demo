@@ -4,10 +4,10 @@ This repo contains files used for the creation of a VSTS pipeline to deliver a c
 
 The pipeline contains scripts, config files and templates for the dpeloyment and configuration of:
 
-* Azure Container Registry
-* Azure Kubernetes Service
+* Azure Container Registry Template with RBAC Assignment
+* Azure Kubernetes Service Template
 * Docker Image
-* Kubernetes YML
-* Script to configure app registration for AKS
-* Script to deploy Public IP address
+* Kubernetes YAML & JSON files
+* ARM template for PIP
+
   
